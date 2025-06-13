@@ -3,7 +3,9 @@ A graphical Python tool for simulating virus replication that incorporates rando
 
 ## Project Overview
 This tool simulates the evolutionary process of a coding sequence (CDS) by introducing random mutations and applying similarity-based selection over multiple cycles.
- Users provide an input and a target sequence in FASTA format, and configure mutation parameters such as substitution rate, substitution/indel ratio, and transition/transversion ratio. For each cycle, the user also configures how many replicates to generate, and how many top-N sequences to select as input for the next cycle.
+
+Users provide an input and a target sequence in FASTA format, and configure mutation parameters such as substitution rate, substitution/indel ratio, and transition/transversion ratio. For each cycle, the user also configures how many replicates to generate, and how many top-N sequences to select as input for the next cycle.
+
 Through successive cycles of mutation and selection, this tool helps explore potential intermediate sequences between the input and the target.
 
 ## Windows Executable
@@ -27,8 +29,10 @@ Through successive cycles of mutation and selection, this tool helps explore pot
 
 ## Requirements when you used python cord
 
-```biopython
-matplotlib```
+```
+biopython
+matplotlib
+```
 
 ---
 
