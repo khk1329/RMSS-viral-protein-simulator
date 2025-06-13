@@ -1,5 +1,5 @@
 # Random mutation and similarity-based selection(RMSS)
-A graphical Python tool for simulating virus replication that incorporates random mutation and similarity-based selection, with support for customization of parameters such as substitution rate, substitution/indel ratio, and transition/transversion ratio.
+A graphical Python tool for simulating the stepwise evolution of a coding sequence by introducing random mutations and applying similarity-based selection, with support for customization of parameters such as mutation rates, simulation cycles, and selection settings.
 
 ## Project Overview
 This tool simulates the evolutionary process of a coding sequence (CDS) by introducing random mutations and applying similarity-based selection over multiple cycles.
