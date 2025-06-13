@@ -19,6 +19,6 @@ This project uses the following open-source Python libraries:
 - **Citation:**  
   Hunter, J. D. (2007). *Matplotlib: A 2D graphics environment*. Computing in Science & Engineering, 9(3), 90–95.
 
-### ⚙Python Standard Library
+### Python Standard Library
 - `csv`, `random`, `datetime`, `os`, `sys`, `gc`, `functools`, `tkinter`, `concurrent.futures`
 - Included with Python, no separate license needed.
