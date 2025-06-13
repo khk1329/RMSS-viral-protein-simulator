@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CovSimulatorGUI</class>
+ <widget class="QWidget" name="CovSimulatorGUI">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1148</width>
+    <height>744</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Mutation Simulator</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{background-color: #E9F0F4; color: black;}
+     QPushButton {
+                background-color: #1D83D5;
+                color: white;
+                font-weight: bold;
+                border: 1px solid #4183BC;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #306999;
+            }</string>
+  </property>
+  <widget class="QPushButton" name="loadInputBtn">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>9</y>
+     <width>571</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="text">
+    <string>Load Input FASTA file</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="loadTargetBtn">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>80</y>
+     <width>571</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="text">
+    <string>Load Target FASTA file</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="chooseOutputFolderBtn">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>570</y>
+     <width>571</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="text">
+    <string>Choose Output Folder</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="startBtn">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>650</y>
+     <width>571</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"> QPushButton {
+                background-color: #0D47A1;
+                color: white;
+                font-weight: bold;
+                border: 1px solid #4183BC;
+                border-radius: 6px;
+            }</string>
+   </property>
+   <property name="text">
+    <string>Run Simulation</string>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="progressBar">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>20</y>
+     <width>511</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QProgressBar {
+    border: 1px solid #00CC66;
+    border-radius: 0px;
+    background-color: #E9F0F4;
+    text-align: center;
+    font: bold 12px;
+    color: #006400; /* 텍스트: 진한 초록 (DarkGreen) */
+}
+
+QProgressBar::chunk {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 #00FF7F,
+        stop: 1 #00CC66
+    );
+    border-radius: 0px;
+    margin: 0px;
+}
+</string>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="logOutput">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>50</y>
+     <width>511</width>
+     <height>631</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget{background-color: white; color: black;}
+QScrollBar:vertical {
+        background: transparent;
+        width: 6px;
+        margin: 2px 0 2px 0;
+    }
+
+QScrollBar::handle:vertical {
+        background: #1D83D5;
+        border-radius: 3px;
+        min-height: 20px;
+    }
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+        height: 0px;
+        background: none;
+    }
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+        background: none;
+    }
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 6px;
+    margin: 0 2px 0 2px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #1D83D5;
+    border-radius: 3px;
+    min-width: 20px;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0px;
+    background: none;
+}
+
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+    background: none;
+}</string>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="inputLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>50</y>
+     <width>571</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget{background-color: white; color: black;}</string>
+   </property>
+   <property name="text">
+    <string>No input file selected</string>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="targetLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>120</y>
+     <width>571</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget{background-color: white; color: black;}</string>
+   </property>
+   <property name="text">
+    <string>No target file selected</string>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="outputFolderLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>610</y>
+     <width>571</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget{background-color: white; color: black;}</string>
+   </property>
+   <property name="text">
+    <string>No output folder selected</string>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QFrame" name="frame">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>200</y>
+     <width>531</width>
+     <height>341</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame {
+    background-color: white;
+                border: 1px solid #ccc;}
+QLabel {    background-color: white;                border: 0px solid}
+
+</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Shape::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Shadow::Raised</enum>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="mutationLayout">
+      <item>
+       <widget class="QLabel" name="mutationLabel">
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>Total Mutation Rate =</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="mutationRate">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="decimals">
+         <number>10</number>
+        </property>
+        <property name="value">
+         <double>0.000001000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="mutationLabel_2">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>ex) 0.00000376 or 3.76e-6</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="subIndelLabel">
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>Substitution : INDEL Ratio =    </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="subRatio">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="decimals">
+         <number>2</number>
+        </property>
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>24.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="indelRatio">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="tranTransvLabel">
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>Transition : Transversion Ratio =</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="tranRatio">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="transvRatio">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QLabel" name="cyclesLabel">
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>Number of Cycles:                 </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="cyclesSpinBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>99999999</number>
+        </property>
+        <property name="value">
+         <number>1000</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QLabel" name="replicationsLabel">
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>Replications per Cycle:            </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="replicationsSpinBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>999999999</number>
+        </property>
+        <property name="value">
+         <number>10000</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QLabel" name="topKLabel">
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="text">
+         <string>Top-N Sequences to select each cycle:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="topKSpinBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget{background-color: white; color: black;}</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>170</y>
+     <width>531</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{background-color: #B7BBBC;
+         color: white; font-weight: bold;}</string>
+   </property>
+   <property name="text">
+    <string>User setting</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="CancelBtn">
+   <property name="geometry">
+    <rect>
+     <x>1010</x>
+     <y>690</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">     QPushButton {
+                background-color: red;
+                color: white;
+                font-weight: bold;
+                border: 1px solid red;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #B71C1C;
+            }</string>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+  </widget>
+  <zorder>frame</zorder>
+  <zorder>loadInputBtn</zorder>
+  <zorder>loadTargetBtn</zorder>
+  <zorder>chooseOutputFolderBtn</zorder>
+  <zorder>startBtn</zorder>
+  <zorder>progressBar</zorder>
+  <zorder>logOutput</zorder>
+  <zorder>inputLabel</zorder>
+  <zorder>targetLabel</zorder>
+  <zorder>outputFolderLabel</zorder>
+  <zorder>label</zorder>
+  <zorder>CancelBtn</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
