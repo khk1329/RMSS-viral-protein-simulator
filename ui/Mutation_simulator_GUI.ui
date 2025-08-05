@@ -316,19 +316,35 @@ QLabel {    background-color: white;                border: 0px solid}
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="mutationLabel_2">
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QWidget{background-color: white; color: black;}</string>
-        </property>
-        <property name="text">
-         <string>ex) 0.00000376 or 3.76e-6</string>
-        </property>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLabel" name="mutationLabel_2">
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QWidget{background-color: white; color: black;}</string>
+          </property>
+          <property name="text">
+           <string>ex) 0.00000376 or 3.76e-6</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>     0.01 = 1%</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>

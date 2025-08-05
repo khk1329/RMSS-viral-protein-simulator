@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'Mutation_simulator_GUIMxdeQl.ui'
+## Form generated from reading UI file 'Mutation_simulator_GUIUHSSGo.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -185,6 +185,8 @@ class Ui_CovSimulatorGUI(object):
 
         self.mutationLayout.addWidget(self.mutationRate)
 
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.mutationLabel_2 = QLabel(self.frame)
         self.mutationLabel_2.setObjectName(u"mutationLabel_2")
         font = QFont()
@@ -192,7 +194,16 @@ class Ui_CovSimulatorGUI(object):
         self.mutationLabel_2.setFont(font)
         self.mutationLabel_2.setStyleSheet(u"QWidget{background-color: white; color: black;}")
 
-        self.mutationLayout.addWidget(self.mutationLabel_2)
+        self.verticalLayout_2.addWidget(self.mutationLabel_2)
+
+        self.label_2 = QLabel(self.frame)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setFont(font)
+
+        self.verticalLayout_2.addWidget(self.label_2)
+
+
+        self.mutationLayout.addLayout(self.verticalLayout_2)
 
 
         self.verticalLayout.addLayout(self.mutationLayout)
@@ -376,6 +387,7 @@ class Ui_CovSimulatorGUI(object):
         self.outputFolderLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"No output folder selected", None))
         self.mutationLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Total Mutation Rate =", None))
         self.mutationLabel_2.setText(QCoreApplication.translate("CovSimulatorGUI", u"ex) 0.00000376 or 3.76e-6", None))
+        self.label_2.setText(QCoreApplication.translate("CovSimulatorGUI", u"     0.01 = 1%", None))
         self.subIndelLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Substitution : INDEL Ratio =    ", None))
         self.tranTransvLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Transition : Transversion Ratio =", None))
         self.cyclesLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Number of Cycles:                 ", None))

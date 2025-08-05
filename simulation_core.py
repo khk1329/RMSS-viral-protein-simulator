@@ -5,7 +5,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 import os
 from datetime import datetime
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import warnings
 import matplotlib.pyplot as plt
 from functools import lru_cache
@@ -50,7 +50,7 @@ def append_simulation_result_to_csv(file_path, input_seq, final_seq):
             writer.writerow(["Input_DNA", "Best_DNA", "Input_Protein", "Best_Protein"])
         writer.writerow([input_seq, final_seq, input_prot, final_prot])
 
-def replicate_sequence(sequence, history, num_replications, mutation_rate,
+def replicate_sequence(sequence, num_replications, mutation_rate,
                        sub_ratio, indel_ratio, tran_ratio, transv_ratio):
     replicated_sequences = []
     bases = b"ATCG"
@@ -75,9 +75,7 @@ def replicate_sequence(sequence, history, num_replications, mutation_rate,
             else:
                 i += 1
         new_seq = replicated_sequence.decode('ascii')
-        new_history = history.copy()
-        new_history.append(new_seq)
-        replicated_sequences.append((new_seq, new_history))
+        replicated_sequences.append(new_seq)
     return replicated_sequences
 
 def mutate_base_by_type(base, mutation_kind):
@@ -90,21 +88,12 @@ def mutate_base_by_type(base, mutation_kind):
         mutated = base
     return mutated.encode('ascii')
 
-def replicate_and_score(input_seq, history, num_replications, mutation_args, comparison_proteins, current_inputs):
-    replicated_sequences = replicate_sequence(
-        input_seq,
-        history,
-        num_replications,
-        mutation_args["mutation_rate"],
-        mutation_args["sub_ratio"],
-        mutation_args["indel_ratio"],
-        mutation_args["tran_ratio"],
-        mutation_args["transv_ratio"]
-    )
+def replicate_and_score(input_seq, num_replications, mutation_args, comparison_proteins, current_inputs):
+    replicated_sequences = replicate_sequence(input_seq, num_replications, **mutation_args)
     scored_reps = []
-    for rep, hist in replicated_sequences:
-        target_score, stepwise_score = score_replicate(rep, current_inputs, comparison_proteins)
-        scored_reps.append((rep, hist, target_score, stepwise_score))
+    for rep in replicated_sequences:
+        target_score, stepwise_score = score_replicate(rep, [input_seq], comparison_proteins)
+        scored_reps.append((rep, input_seq, target_score, stepwise_score))
     return scored_reps
 
 def score_replicate(rep, current_inputs, target_protein):
@@ -202,13 +191,8 @@ def plot_similarity_graph(cycle_data, result_folder="."):
     plt.close(fig)
     
 def batch_score(chunk, current_inputs, target_protein, stop_event=None):
-    scored_chunk = []
-    for rep, hist in chunk:
-        if stop_event and stop_event.is_set():
-            break
-        target_score, stepwise_score = score_replicate(rep, current_inputs, target_protein)
-        scored_chunk.append((rep, hist, target_score, stepwise_score))
-    return scored_chunk
+    for rep, parent in chunk:
+        target_score, stepwise_score = score_replicate(rep, [parent], target_protein)
 
 def simulate_multiple_cycles(input_sequence, target_sequences, num_cycles, num_replications_per_cycle,
                               mutation_rate, sub_ratio, indel_ratio, tran_ratio, transv_ratio,
@@ -253,117 +237,120 @@ def simulate_multiple_cycles(input_sequence, target_sequences, num_cycles, num_r
         "transv_ratio": transv_ratio
     }
 
-    current_input_sequences = [(input_sequence, [input_sequence])]
+    current_input_sequences = [(input_sequence, None)] 
     best_similarity = 0
     best_replicate = None
     same_count = 0
     cycle_data = []
     cpu_count = os.cpu_count() or 1
-    num_workers = min(61, cpu_count)
+    num_workers = min(4, cpu_count)
 
-    with open(os.path.join(result_folder, "cycle_results.csv"), "w", newline='', encoding="utf-8") as f, ProcessPoolExecutor(max_workers=num_workers) as executor:
-
+    with open(os.path.join(result_folder, "cycle_results.csv"), "w", newline='', encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["Cycle", "InputSequence", "SelectedSequence",
-                         "InputProteinSimilarity", "StepwiseProteinSimilarity",
-                         "TargetProteinSimilarity", "InputProteinSequence",
-                         "OutputProteinSequence"])
-
-        for cycle in range(num_cycles):
-            all_replicates = []
-            for seq, history in current_input_sequences:
-                replicated = replicate_sequence(seq, history, num_replications_per_cycle, **mutation_args)
-                all_replicates.extend(replicated)
+        writer.writerow([
+            "Cycle", "InputSequence", "SelectedSequence",
+            "InputProteinSimilarity", "StepwiseProteinSimilarity",
+            "TargetProteinSimilarity", "InputProteinSequence",
+            "OutputProteinSequence"
+        ])
     
-            futures = {
-                executor.submit(score_replicate, rep, [s for s, _ in current_input_sequences], target_protein): (rep, hist)
-                for rep, hist in all_replicates
-            }
-    
-            scored = []
-    
-            for future in as_completed(futures):
-                if stop_event and stop_event.is_set():
-                    log("🛑 Stop requested during scoring. Aborting current cycle.")
-                    for f in futures:
-                        f.cancel()
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            for cycle in range(num_cycles):
+                all_replicates = []
+                for seq, parent_seq in current_input_sequences:
+                    replicated = replicate_sequence(seq, num_replications_per_cycle, **mutation_args)
+                    for rep_seq in replicated:
+                        all_replicates.append((rep_seq, seq))
+            
+                futures = {
+                    executor.submit(score_replicate, rep_seq, [parent_seq] if parent_seq else [rep_seq], target_protein): (rep_seq, parent_seq)
+                    for rep_seq, parent_seq in all_replicates
+                }
+            
+                scored = []
+            
+                for future in as_completed(futures):
+                    if stop_event and stop_event.is_set():
+                        log("🛑 Stop requested during scoring. Aborting current cycle.")
+                        for f in futures:
+                            f.cancel()
+                        break
+            
+                    try:
+                        rep_seq, parent_seq = futures[future]
+                        target_sim, step_sim = future.result()
+                        scored.append((rep_seq, parent_seq, target_sim, step_sim))
+                    except Exception as e:
+                        log(f"⚠️ Error in scoring: {e}")
+            
+                if not scored:
+                    log("⚠️ No scored results this cycle.")
                     break
-    
-                try:
-                    rep, hist = futures[future]
-                    target_sim, step_sim = future.result()
-                    scored.append((rep, hist, target_sim, step_sim))
-                except Exception as e:
-                    log(f"⚠️ Error in scoring: {e}")
-    
-            if not scored:
-                log("⚠️ No scored results this cycle.")
-                break
-
-            top = sorted(scored, key=lambda x: x[2], reverse=True)[:top_k]
-            current_input_sequences = [(rep, history) for rep, history, _, _ in top]
-
-            if (cycle + 1) % 10 == 0:
-                best_rep = max(top, key=lambda x: x[2])
-                rep_seq, _, best_sim, _ = best_rep
-                with open(os.path.join(result_folder, "best_replicates.fasta"), "a") as fasta_file:
-                    fasta_file.write(f">Cycle{cycle+1}_best_replicate_sim{best_sim:.2f}\n")
-                    fasta_file.write(rep_seq + "\n\n")
-                    
-            if (cycle + 1) % 100 == 0:
-                translate_cached.cache_clear()
-                compare_proteins.cache_clear()
-                log("Cache cleared (every 100 cycles)")
-
-            similarities = [sim for _, _, sim, _ in top]
-            if similarities:
-                min_sim = min(similarities)
-                max_sim = max(similarities)
-                log(f"[Cycle {cycle+1}] Top {top_k} Similarity Range: {min_sim:.2f}% ~ {max_sim:.2f}%")
-
-            for rep, history, target_sim, step_sim in top:
-                prot_output = translate(rep)
-                translated_input = translate(history[-2]) 
-
-                prot_step = compare_proteins(prot_output, translated_input)
-                prot_inout = compare_proteins(prot_output, prot_initial)
-                prot_target = compare_proteins(prot_output, target_protein)
-
-                writer.writerow([
-                    cycle + 1, history[-2], rep,
-                    f"{prot_inout:.2f}%", f"{prot_step:.2f}%", f"{prot_target:.2f}%",
-                    translated_input, prot_output
-                ])
-                
-                if target_sim > best_similarity:
-                    best_similarity = target_sim
-                    best_replicate = rep
-                
-            target_similarities = [compare_proteins(translate(rep), target_protein) for rep, _ in current_input_sequences]
-            input_similarities = [compare_proteins(translate(rep), prot_initial) for rep, _ in current_input_sequences]
-
-            cycle_data.append((
-                cycle + 1,
-                max(target_similarities), min(target_similarities),
-                max(input_similarities), min(input_similarities)
-            ))
             
-            log(f"[Cycle {cycle+1}] ✅ Best similarity so far: {best_similarity:.2f}%")
-
-            same_reps = sum(1 for rep, history in current_input_sequences if history[-1] == history[-2])
-            same_count += same_reps
-            if same_reps == 0:
-                log(f"[Cycle {cycle+1}] All replicates mutated")
-            else:
-                log(f"[Cycle {cycle+1}] {(same_reps / top_k) * 100:.1f}% Input protein sequence maintained in this cycle")
+                top = sorted(scored, key=lambda x: x[2], reverse=True)[:top_k]
+                current_input_sequences = [(rep, parent) for rep, parent, _, _ in top] 
+    
+                if (cycle + 1) % 10 == 0:
+                    best_rep = max(top, key=lambda x: x[2])
+                    rep_seq, _, best_sim, _ = best_rep
+                    with open(os.path.join(result_folder, "best_replicates.fasta"), "a") as fasta_file:
+                        fasta_file.write(f">Cycle{cycle+1}_best_replicate_sim{best_sim:.2f}\n")
+                        fasta_file.write(rep_seq + "\n\n")
+    
+                if (cycle + 1) % 100 == 0:
+                    translate_cached.cache_clear()
+                    compare_proteins.cache_clear()
+                    log("Cache cleared (every 100 cycles)")
+    
+                similarities = [sim for _, _, sim, _ in top]
+                if similarities:
+                    min_sim = min(similarities)
+                    max_sim = max(similarities)
+                    log(f"[Cycle {cycle+1}] Top {top_k} Similarity Range: {min_sim:.2f}% ~ {max_sim:.2f}%")
+    
+                for rep, parent, target_sim, step_sim in top:
+                    prot_output = translate(rep)
+                    prot_parent = translate(parent) if parent else prot_output
             
-            all_replicates = None
-            scored = None
-            futures = None
-            gc.collect()
-           
-            if queue:
-                queue.put(('progress', (cycle + 1, num_cycles)))
+                    prot_step = compare_proteins(prot_output, prot_parent)
+                    prot_inout = compare_proteins(prot_output, prot_initial)
+                    prot_target = compare_proteins(prot_output, target_protein)
+            
+                    writer.writerow([
+                        cycle + 1, parent if parent else rep, rep,
+                        f"{prot_inout:.2f}%", f"{prot_step:.2f}%", f"{prot_target:.2f}%",
+                        prot_parent, prot_output
+                    ])
+    
+                    if target_sim > best_similarity:
+                        best_similarity = target_sim
+                        best_replicate = rep
+    
+                target_similarities = [compare_proteins(translate(rep), target_protein) for rep, _ in current_input_sequences]
+                input_similarities = [compare_proteins(translate(rep), prot_initial) for rep, _ in current_input_sequences]
+    
+                cycle_data.append((
+                    cycle + 1,
+                    max(target_similarities), min(target_similarities),
+                    max(input_similarities), min(input_similarities)
+                ))
+    
+                log(f"[Cycle {cycle+1}] ✅ Best similarity so far: {best_similarity:.2f}%")
+    
+                same_reps = sum(1 for rep, parent in current_input_sequences if rep == parent)
+                same_count += same_reps
+                if same_reps == 0:
+                    log(f"[Cycle {cycle+1}] All replicates mutated")
+                else:
+                    log(f"[Cycle {cycle+1}] {(same_reps / top_k) * 100:.1f}% Input protein sequence maintained in this cycle")
+    
+                all_replicates = None
+                scored = None
+                futures = None
+                gc.collect()
+    
+                if queue:
+                    queue.put(('progress', (cycle + 1, num_cycles)))
 
     if stop_event and stop_event.is_set():
         log("🛑 Simulation was manually stopped.")            

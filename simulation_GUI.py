@@ -84,10 +84,6 @@ class CovSimulator(QWidget):
 
         self.queue = multiprocessing.Queue()
         
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.poll_queue)
-        self.timer.start(100)
-
     def log(self, message):
         self.ui.logOutput.append(str(message))
         cursor = self.ui.logOutput.textCursor()
@@ -193,7 +189,7 @@ class CovSimulator(QWidget):
                 load_sequences_from_fasta_list(self.target_paths),
                 self.ui.cyclesSpinBox.value(),
                 self.ui.replicationsSpinBox.value(),
-                self.ui.mutationRate.value() / 100.0,
+                self.ui.mutationRate.value(),
                 self.ui.subRatio.value(),
                 self.ui.indelRatio.value(),
                 self.ui.tranRatio.value(),
