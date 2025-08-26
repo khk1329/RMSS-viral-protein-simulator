@@ -216,8 +216,8 @@ def simulate_multiple_cycles(input_sequence, target_sequences, num_cycles, num_r
     Simulation started
     ------------------------- Setting Information -------------------------
     ○ Mutation Rate: {mutation_rate_str}
-    ○ Substitution Ratio: {sub_ratio}, Indel Ratio: {indel_ratio}
-    ○ Transition Ratio: {tran_ratio}, Transversion Ratio: {transv_ratio}
+    ○ Substitution : INDEL = {sub_ratio} : {indel_ratio}
+    ○ Transition : Transversion = {tran_ratio} : {transv_ratio}
     ○ Number of Cycles: {num_cycles}
     ○ Number of Replications per Cycle: {num_replications_per_cycle}
     ○ Top-N selection: {top_k}
