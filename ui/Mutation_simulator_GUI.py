@@ -181,7 +181,7 @@ class Ui_CovSimulatorGUI(object):
         self.mutationRate.setSizePolicy(sizePolicy)
         self.mutationRate.setStyleSheet(u"QWidget{background-color: white; color: black;}")
         self.mutationRate.setDecimals(10)
-        self.mutationRate.setValue(0.000001000000000)
+        self.mutationRate.setValue(0.00000376)
 
         self.mutationLayout.addWidget(self.mutationRate)
 
@@ -388,8 +388,8 @@ class Ui_CovSimulatorGUI(object):
         self.mutationLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Total Mutation Rate =", None))
         self.mutationLabel_2.setText(QCoreApplication.translate("CovSimulatorGUI", u"ex) 0.00000376 or 3.76e-6", None))
         self.label_2.setText(QCoreApplication.translate("CovSimulatorGUI", u"     0.01 = 1%", None))
-        self.subIndelLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Substitution : INDEL Ratio =    ", None))
-        self.tranTransvLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Transition : Transversion Ratio =", None))
+        self.subIndelLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Substitution / INDEL Ratio =    ", None))
+        self.tranTransvLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Transition / Transversion Ratio =", None))
         self.cyclesLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Number of Cycles:                 ", None))
         self.replicationsLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Replications per Cycle:            ", None))
         self.topKLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Top-N Sequences to select each cycle:", None))
