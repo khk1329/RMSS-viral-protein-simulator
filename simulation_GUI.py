@@ -1,5 +1,6 @@
 import multiprocessing
 import threading
+import os
 from queue import Queue
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QFileDialog, QDoubleSpinBox
 from PySide6.QtCore import QTimer, Qt
@@ -105,16 +106,53 @@ class CovSimulator(QWidget):
                     self.ui.progressBar.setValue(current)
     
                 elif msg_type == 'done':
+                    simulation_status = content
                     self.closing_allowed = True
-                    self.ui.progressBar.setMaximum(100)
-                    self.ui.progressBar.setValue(100)
-                    
+                
+                    self.ui.loadInputBtn.setEnabled(True)
+                    self.ui.loadTargetBtn.setEnabled(True)
+                    self.ui.chooseOutputFolderBtn.setEnabled(True)
+                    self.ui.startBtn.setEnabled(True)
+                
+                    self.ui.CancelBtn.setEnabled(True)
+                    self.ui.CancelBtn.hide()
+                
+                    if hasattr(self, 'process') and self.process is not None:
+                        self.process.join(timeout=1)
+                        self.process = None
+                
                     QApplication.alert(self)
-                    
+                
                     msg_box = QMessageBox(self)
-                    msg_box.setWindowTitle("Finished")
-                    msg_box.setText("Simulation completed successfully!")
-                    msg_box.setIcon(QMessageBox.Information)
+    
+                    if simulation_status == 'completed':
+                        self.ui.progressBar.setMaximum(100)
+                        self.ui.progressBar.setValue(100)
+    
+                        msg_box.setWindowTitle('Finished')
+                        msg_box.setText('Simulation completed successfully!')
+                        msg_box.setIcon(QMessageBox.Information)
+    
+                    elif simulation_status == 'cancelled':
+                        msg_box.setWindowTitle('Stopped')
+                        msg_box.setText('Simulation was stopped by the user.')
+                        msg_box.setIcon(QMessageBox.Information)
+    
+                    elif simulation_status == 'no_scored_results':
+                        msg_box.setWindowTitle('Simulation Stopped')
+                        msg_box.setText(
+                            'The simulation was stopped because no valid '
+                            'ORF-containing replicates were available.'
+                        )
+                        msg_box.setIcon(QMessageBox.Warning)
+    
+                    else:
+                        msg_box.setWindowTitle('Simulation Ended')
+                        msg_box.setText(
+                            'The simulation ended before completion.'
+                        )
+                        msg_box.setIcon(QMessageBox.Warning)
+    
                     ok_button = msg_box.addButton(QMessageBox.Ok)
                     ok_button.setCursor(Qt.PointingHandCursor)
                     ok_button.setStyleSheet("""
@@ -126,23 +164,15 @@ class CovSimulator(QWidget):
                             min-height: 10px;
                         }
                     """)
+    
                     msg_box.activateWindow()
                     msg_box.exec()
-    
-                    if isinstance(self.gui_queue, multiprocessing.queues.Queue):
-                        try:
-                            self.gui_queue.close()
-                            self.gui_queue.join_thread()
-                        except Exception as e:
-                            print(f"Queue closing error: {e}")
-    
-                    QApplication.quit()
-    
+       
             except Exception as e:
-                print(f"Queue error: {e}")
+                print(f'Queue error: {e}')
 
     def load_input_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Open Input FASTA File", "", "FASTA Files (*.fasta *.fa *.fna)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open Start FASTA File", "", "FASTA Files (*.fasta *.fa *.fna)")
         if file_path:
             self.input_path = file_path
             self.ui.inputLabel.setText(file_path)
@@ -168,8 +198,21 @@ class CovSimulator(QWidget):
             
     def start_simulation_process(self):
         if not self.input_path or not self.target_paths or not self.output_folder:
-            QMessageBox.warning(self, "Missing Input", "Please set all input files and output folder.")
+            QMessageBox.warning(
+                self,
+                "Missing Input",
+                "Please set all input files and output folder."
+            )
             return
+           
+        self.stop_event.clear()
+
+        self.ui.logOutput.clear()
+        self.ui.progressBar.setRange(0, 100)
+        self.ui.progressBar.setValue(0)
+        
+        self.ui.CancelBtn.setEnabled(True)
+        self.ui.CancelBtn.show()
         
         mutation_rate_str = self.ui.mutationRate.text()
         
@@ -177,16 +220,39 @@ class CovSimulator(QWidget):
         self.ui.loadTargetBtn.setEnabled(False)
         self.ui.chooseOutputFolderBtn.setEnabled(False)
         self.ui.startBtn.setEnabled(False)
-
-        self.ui.CancelBtn.show()
+        
         self.closing_allowed = False
+    
+        try:
+            input_sequence = load_sequence_from_fasta(
+                self.input_path
+            )
+    
+            target_sequences = load_sequences_from_fasta_list(
+                self.target_paths
+            )
+    
+        except ValueError as exc:
+            QMessageBox.critical(
+                self,
+                "Invalid FASTA File",
+                str(exc)
+            )
+            return
+    
+        mutation_rate_str = self.ui.mutationRate.text()
+        
+        self.ui.loadInputBtn.setEnabled(False)
+        self.ui.loadTargetBtn.setEnabled(False)
+        self.ui.chooseOutputFolderBtn.setEnabled(False)
+        self.ui.startBtn.setEnabled(False)
 
         self.process_queue = multiprocessing.Queue()
         self.process = multiprocessing.Process(
             target=simulate_multiple_cycles,
             args=(
-                load_sequence_from_fasta(self.input_path),
-                load_sequences_from_fasta_list(self.target_paths),
+                input_sequence,
+                target_sequences,
                 self.ui.cyclesSpinBox.value(),
                 self.ui.replicationsSpinBox.value(),
                 self.ui.mutationRate.value(),
@@ -200,7 +266,9 @@ class CovSimulator(QWidget):
                 'output_folder': self.output_folder,
                 'top_k': self.ui.topKSpinBox.value(),
                 'mutation_rate_str': mutation_rate_str,
-                'stop_event': self.stop_event
+                'stop_event': self.stop_event,
+                'input_file_name': os.path.basename(self.input_path),
+                'target_file_names': [os.path.basename(path) for path in self.target_paths]
             }
         )
         self.process.start()

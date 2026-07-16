@@ -1,6 +1,12 @@
 # Random mutation and similarity-based selection(RMSS)
 A graphical Python tool for simulating the stepwise evolution of a coding sequence by introducing random mutations and applying similarity-based selection, with support for customization of parameters such as mutation rates, simulation cycles, and selection settings.
 
+## Latest Update (ver3.6)
+
+The latest version introduces complete-CDS validation, frame-aware ORF detection, mutated-replicate-only protein scoring, improved cancellation handling, and additional ORF metadata in the simulation results.
+
+See the `CHANGELOG.md` for details.
+
 ## Project Overview
 This tool simulates the evolutionary process of a coding sequence (CDS) by introducing random mutations and applying similarity-based selection over multiple cycles.
 

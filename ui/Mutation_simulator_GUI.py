@@ -378,11 +378,11 @@ class Ui_CovSimulatorGUI(object):
 
     def retranslateUi(self, CovSimulatorGUI):
         CovSimulatorGUI.setWindowTitle(QCoreApplication.translate("CovSimulatorGUI", u"Mutation Simulator", None))
-        self.loadInputBtn.setText(QCoreApplication.translate("CovSimulatorGUI", u"Load Input FASTA file", None))
+        self.loadInputBtn.setText(QCoreApplication.translate("CovSimulatorGUI", u"Load Start FASTA file", None))
         self.loadTargetBtn.setText(QCoreApplication.translate("CovSimulatorGUI", u"Load Target FASTA file", None))
         self.chooseOutputFolderBtn.setText(QCoreApplication.translate("CovSimulatorGUI", u"Choose Output Folder", None))
         self.startBtn.setText(QCoreApplication.translate("CovSimulatorGUI", u"Run Simulation", None))
-        self.inputLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"No input file selected", None))
+        self.inputLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"No Start file selected", None))
         self.targetLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"No target file selected", None))
         self.outputFolderLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"No output folder selected", None))
         self.mutationLabel.setText(QCoreApplication.translate("CovSimulatorGUI", u"Total Mutation Rate =", None))
